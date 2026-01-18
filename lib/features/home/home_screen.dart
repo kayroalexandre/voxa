@@ -37,6 +37,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   @override
   void dispose() {
     _tabController.dispose();
+    _speechService.dispose();
     super.dispose();
   }
 
@@ -74,34 +75,37 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         body: TabBarView(
           controller: _tabController,
           children: [
-            _buildNotesList(context),
-            _buildJournalsList(context),
-            _buildMindMapsList(context),
+            _buildNotesList(),
+            _buildJournalsList(),
+            _buildMindMapsList(),
           ],
         ),
-        floatingActionButton: _buildFloatingActionButton(context),
+        floatingActionButton: _buildFloatingActionButton(),
       ),
     );
   }
 
-  Widget _buildFloatingActionButton(BuildContext context) {
+  Widget _buildFloatingActionButton() {
     return FloatingActionButton(
       onPressed: () {
         if (_tabController.index == 0) {
-          _showCreateNoteDialog(context);
+          _showCreateNoteDialog();
         } else if (_tabController.index == 1) {
-          _showCreateJournalDialog(context);
+          _showCreateJournalDialog();
         } else {
-          _showCreateMindMapDialog(context);
+          _showCreateMindMapDialog();
         }
       },
       child: const Icon(Icons.add),
     );
   }
 
-  void _showCreateNoteDialog(BuildContext context) {
+  void _showCreateNoteDialog() {
     final noteService = context.read<NoteService>();
+    final aiService = context.read<AiService>();
+    final speechService = context.read<SpeechService>();
     final textController = TextEditingController();
+    final navigator = Navigator.of(context);
 
     showDialog(
       context: context,
@@ -113,19 +117,20 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               return TextField(
                 controller: textController,
                 decoration: InputDecoration(
-                  hintText: 'Note text',
+                  hintText: 'Speak to transcribe...',
                   suffixIcon: IconButton(
-                    icon: Icon(_speechService.isListening ? Icons.mic_off : Icons.mic),
+                    icon: Icon(speechService.isListening ? Icons.mic_off : Icons.mic),
                     onPressed: () {
-                      if (_speechService.isListening) {
-                        _speechService.stopListening();
+                      if (speechService.isListening) {
+                        speechService.stopListening();
                       } else {
-                        _speechService.startListening((text) {
+                        speechService.startListening((text) {
                           setState(() {
                             textController.text = text;
                           });
                         });
                       }
+                      // We need to call setState to rebuild the icon
                       setState(() {});
                     },
                   ),
@@ -135,14 +140,19 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => navigator.pop(),
               child: const Text('Cancel'),
             ),
             TextButton(
-              onPressed: () {
+              onPressed: () async {
+                final rawText = textController.text;
+                if (rawText.isEmpty) return;
+
+                final enhancedText = await aiService.enhanceText(rawText);
+                noteService.createNote(enhancedText, 'audio');
+
                 if (mounted) {
-                  noteService.createNote(textController.text, 'text');
-                  Navigator.pop(context);
+                  navigator.pop();
                 }
               },
               child: const Text('Create'),
@@ -153,9 +163,12 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     );
   }
 
-  void _showCreateJournalDialog(BuildContext context) {
+  void _showCreateJournalDialog() {
     final journalService = context.read<JournalService>();
+    final aiService = context.read<AiService>();
+    final speechService = context.read<SpeechService>();
     final textController = TextEditingController();
+    final navigator = Navigator.of(context);
 
     showDialog(
       context: context,
@@ -167,20 +180,20 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               return TextField(
                 controller: textController,
                 decoration: InputDecoration(
-                  hintText: 'Journal text',
+                  hintText: 'Speak to transcribe...',
                   suffixIcon: IconButton(
-                    icon: Icon(_speechService.isListening ? Icons.mic_off : Icons.mic),
+                    icon: Icon(speechService.isListening ? Icons.mic_off : Icons.mic),
                     onPressed: () {
-                      if (_speechService.isListening) {
-                        _speechService.stopListening();
+                      if (speechService.isListening) {
+                        speechService.stopListening();
                       } else {
-                        _speechService.startListening((text) {
+                        speechService.startListening((text) {
                           setState(() {
                             textController.text = text;
                           });
                         });
                       }
-                      setState(() {});
+                       setState(() {});
                     },
                   ),
                 ),
@@ -189,14 +202,19 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => navigator.pop(),
               child: const Text('Cancel'),
             ),
             TextButton(
-              onPressed: () {
-                if (mounted) {
-                  journalService.createJournal(textController.text);
-                  Navigator.pop(context);
+              onPressed: () async {
+                final rawText = textController.text;
+                if (rawText.isEmpty) return;
+
+                final enhancedText = await aiService.enhanceText(rawText);
+                journalService.createJournal(enhancedText);
+
+                 if (mounted) {
+                  navigator.pop();
                 }
               },
               child: const Text('Create'),
@@ -207,9 +225,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     );
   }
 
-  void _showCreateMindMapDialog(BuildContext context) {
+  void _showCreateMindMapDialog() {
     final mindMapService = context.read<MindMapService>();
     final titleController = TextEditingController();
+    final navigator = Navigator.of(context);
 
     showDialog(
       context: context,
@@ -222,14 +241,14 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => navigator.pop(),
               child: const Text('Cancel'),
             ),
             TextButton(
               onPressed: () {
-                if (mounted) {
-                  mindMapService.createMindMap(titleController.text, []);
-                  Navigator.pop(context);
+                mindMapService.createMindMap(titleController.text, []);
+                 if (mounted) {
+                  navigator.pop();
                 }
               },
               child: const Text('Create'),
@@ -240,7 +259,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     );
   }
 
-  Widget _buildNotesList(BuildContext context) {
+  Widget _buildNotesList() {
     final noteService = context.watch<NoteService>();
     return StreamBuilder(
       stream: noteService.getNotes(),
@@ -266,7 +285,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     );
   }
 
-  Widget _buildJournalsList(BuildContext context) {
+  Widget _buildJournalsList() {
     final journalService = context.watch<JournalService>();
     return StreamBuilder(
       stream: journalService.getJournals(),
@@ -292,7 +311,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     );
   }
 
-  Widget _buildMindMapsList(BuildContext context) {
+  Widget _buildMindMapsList() {
     final mindMapService = context.watch<MindMapService>();
     return StreamBuilder<List<MindMap>>(
       stream: mindMapService.getMindMaps(),
@@ -316,11 +335,11 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 children: [
                   IconButton(
                     icon: const Icon(Icons.upload_file),
-                    onPressed: () => _handleFileUpload(context, mindMap.id),
+                    onPressed: () => _handleFileUpload(mindMap.id),
                   ),
                   IconButton(
                     icon: const Icon(Icons.summarize),
-                    onPressed: () => _handleSummarize(context, mindMap),
+                    onPressed: () => _handleSummarize(mindMap),
                   ),
                 ],
               ),
@@ -331,61 +350,76 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     );
   }
 
-  void _handleFileUpload(BuildContext context, String mindMapId) async {
+  void _handleFileUpload(String mindMapId) async {
     final mindMapService = context.read<MindMapService>();
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
 
-    // Get the temporary directory
-    final directory = await getTemporaryDirectory();
-    final filePath = '${directory.path}/placeholder.txt';
+    try {
+      final directory = await getTemporaryDirectory();
+      final filePath = '${directory.path}/placeholder.txt';
 
-    // Copy the asset file to the temporary directory
-    final byteData = await rootBundle.load('assets/files/placeholder.txt');
-    final buffer = byteData.buffer;
-    await File(filePath).writeAsBytes(
-        buffer.asUint8List(byteData.offsetInBytes, byteData.lengthInBytes));
+      final byteData = await rootBundle.load('assets/files/placeholder.txt');
+      final buffer = byteData.buffer;
+      await File(filePath).writeAsBytes(
+          buffer.asUint8List(byteData.offsetInBytes, byteData.lengthInBytes));
 
-    // Upload the file
-    await mindMapService.addFileToMindMap(mindMapId, filePath);
+      await mindMapService.addFileToMindMap(mindMapId, filePath);
 
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      if (!mounted) return;
+      scaffoldMessenger.showSnackBar(
         const SnackBar(content: Text('File uploaded!')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      scaffoldMessenger.showSnackBar(
+        SnackBar(content: Text('Error uploading file: $e')),
       );
     }
   }
 
-  void _handleSummarize(BuildContext context, MindMap mindMap) async {
+  void _handleSummarize(MindMap mindMap) async {
     final aiService = context.read<AiService>();
+    final navigator = Navigator.of(context);
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
 
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const Center(child: CircularProgressIndicator()),
+      builder: (_) => const Center(child: CircularProgressIndicator()),
     );
 
     try {
-      final summary = await aiService.summarizeMindMap(mindMap);
+      final summary = await aiService.summarizeMindMap(mindMap.id);
+
       if (!mounted) return;
-      Navigator.pop(context); // Dismiss the loading indicator
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Summary'),
-          content: Text(summary),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('OK'),
-            ),
-          ],
-        ),
-      );
+
+      navigator.pop(); // Dismiss the loading indicator
+      
+      _showSummaryDialog(summary);
+
     } catch (e) {
       if (!mounted) return;
-      Navigator.pop(context); // Dismiss the loading indicator
-      ScaffoldMessenger.of(context).showSnackBar(
+      navigator.pop(); // Dismiss the loading indicator
+      scaffoldMessenger.showSnackBar(
         SnackBar(content: Text('Error summarizing: $e')),
       );
     }
+  }
+
+  void _showSummaryDialog(String summary) {
+    final navigator = Navigator.of(context);
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Summary'),
+        content: Text(summary),
+        actions: [
+          TextButton(
+            onPressed: () => navigator.pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
 }

@@ -11,24 +11,25 @@ dependencies:
   flutter:
     sdk: flutter
 
-  cupertino_icons: ^1.0.8
-  firebase_core: ^4.3.0
-  go_router: ^17.0.1
-  google_fonts: ^7.0.2
-  provider: ^6.1.2
-  firebase_auth: ^6.1.3
-  cloud_firestore: ^6.1.1
-  firebase_storage: ^13.0.5
-  path_provider: ^2.1.3
+  cupertino_icons: 1.0.8
+  firebase_core: 4.3.0
+  go_router: 17.0.1
+  google_fonts: 7.0.2
+  provider: 6.1.5+1
+  firebase_auth: 6.1.3
+  cloud_firestore: 6.1.1
+  firebase_storage: 13.0.5
+  path_provider: 2.1.5
   speech_to_text: ^7.3.0
-  firebase_ai: ^3.6.1
-  cloud_functions: ^6.0.5
+  cloud_functions: 6.0.5
+  record: ^6.1.2
+  permission_handler: ^12.0.1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
 
-  flutter_lints: ^6.0.0
+  flutter_lints: 6.0.0
 
 flutter:
   uses-material-design: true
