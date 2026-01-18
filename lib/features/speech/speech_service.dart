@@ -1,86 +1,42 @@
 
 import 'dart:async';
-import 'package:flutter/foundation.dart';
-import 'package:speech_to_text/speech_to_text.dart';
-import 'package:speech_to_text/speech_recognition_result.dart';
-import 'dart:developer' as developer;
+import 'package:record/record.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:path_provider/path_provider.dart';
 
 class SpeechService {
-  final SpeechToText _speechToText = SpeechToText();
-  bool _isInitialized = false;
-  bool _isListening = false;
+  final AudioRecorder _audioRecorder = AudioRecorder();
 
-  bool get isListening => _isListening;
-
+  /// Initializes the speech service by requesting microphone permission.
   Future<void> initialize() async {
-    try {
-      _isInitialized = await _speechToText.initialize(
-        onError: (error) => developer.log('Speech recognition error: $error', name: 'voxa.speech_service'),
-        onStatus: (status) => _handleStatusChange(status),
-      );
-    } catch (e, s) {
-        developer.log(
-          'Error initializing speech to text',
-          name: 'voxa.speech_service',
-          error: e,
-          stackTrace: s,
-        );
-    }
-
-  }
-
-  void _handleStatusChange(String status) {
-    _isListening = _speechToText.isListening;
-    developer.log('Speech recognition status: $status', name: 'voxa.speech_service');
-  }
-
-  void startListening(Function(String) onResult) {
-    if (!_isInitialized) {
-      developer.log('Speech service not initialized', name: 'voxa.speech_service');
-      return;
-    }
-    if (_isListening) {
-       developer.log('Already listening', name: 'voxa.speech_service');
-      return;
-    }
-
-    try {
-       _speechToText.listen(
-        onResult: (SpeechRecognitionResult result) {
-          onResult(result.recognizedWords);
-        },
-        listenFor: const Duration(minutes: 5),
-        pauseFor: const Duration(seconds: 5),
-        partialResults: true,
-      );
-    } catch (e,s) {
-       developer.log(
-        'Error starting to listen',
-        name: 'voxa.speech_service',
-        error: e,
-        stackTrace: s,
-      );
+    final status = await Permission.microphone.request();
+    if (status != PermissionStatus.granted) {
+      throw Exception('Microphone permission not granted');
     }
   }
 
-  void stopListening() {
-     if (!_isListening) {
-       developer.log('Not currently listening', name: 'voxa.speech_service');
-      return;
-    }
-    try {
-      _speechToText.stop();
-    } catch (e,s) {
-      developer.log(
-        'Error stopping listening',
-        name: 'voxa.speech_service',
-        error: e,
-        stackTrace: s,
-      );
-    }
+  /// Starts recording audio.
+  ///
+  /// The recording is saved to a temporary file in .m4a format.
+  Future<void> startRecording() async {
+    final directory = await getTemporaryDirectory();
+    final path = '${directory.path}/voxa_recording.m4a';
+    
+    // Using aacLc encoder for .m4a file format which is broadly compatible.
+    const config = RecordConfig(encoder: AudioEncoder.aacLc);
+
+    // Start recording to the specified path.
+    await _audioRecorder.start(config, path: path);
   }
 
-  void dispose() {
-    _speechToText.stop();
+  /// Stops the audio recording and returns the path to the recorded file.
+  Future<String?> stopRecording() async {
+    final path = await _audioRecorder.stop();
+    return path;
+  }
+
+  /// Returns a stream of amplitude values.
+  Stream<Amplitude> onAmplitudeChanged(Duration interval) {
+    return _audioRecorder.onAmplitudeChanged(interval);
   }
 }

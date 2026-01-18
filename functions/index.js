@@ -1,65 +1,67 @@
-
-const { onCall, HttpsError } = require("firebase-functions/v2/https");
+const { https } = require("firebase-functions");
 const { initializeApp } = require("firebase-admin/app");
-const { gemini15Flash, Part } = require("@genkit-ai/googleai");
-const { generate } = require("@genkit-ai/ai");
+const { defineFlow, configureGenkit } = require("@genkit-ai/core");
+const { firebase } = require("@genkit-ai/firebase");
+const { googleAI } = require("@genkit-ai/googleai");
 const { z } = require("zod");
 
+// Initialize Firebase Admin SDK
 initializeApp();
 
-exports.enhanceText = onCall(
+// Configure Genkit
+configureGenkit({
+  plugins: [
+    firebase(),
+    googleAI(),
+  ],
+  logLevel: "debug",
+  enableTracingAndMetrics: true,
+});
+
+// Define the Genkit flow for text enhancement
+const enhanceTextFlow = defineFlow(
   {
-    enforceAppCheck: true, // Optional: Enforce App Check
+    name: "enhanceTextFlow",
+    inputSchema: z.string(),
+    outputSchema: z.string(),
   },
-  async (request) => {
-    // 1. Authentication Check
-    if (!request.auth) {
-      throw new HttpsError(
-        "unauthenticated",
-        "The function must be called while authenticated."
-      );
-    }
+  async (rawText) => {
+    const llm = googleAI("gemini-1.5-flash");
 
-    // 2. Input Validation
-    const dataSchema = z.object({
-      text: z.string().min(1),
-    });
+    const prompt = `
+      Você é um especialista em língua portuguesa do Brasil.
+      Sua tarefa é corrigir o texto a seguir, que é a transcrição de um áudio.
 
-    const validation = dataSchema.safeParse(request.data);
-    if (!validation.success) {
-      throw new HttpsError(
-        "invalid-argument",
-        "The function must be called with a non-empty 'text' argument."
-      );
-    }
+      REGRAS DE CORREÇÃO:
+      1.  **Correção Completa:** Corrija gramática, pontuação, concordância, ortografia e melhore a fluidez.
+      2.  **Preservação Total:** NÃO altere o sentido, a intenção, o tom ou a personalidade do texto original. O resultado deve ser a mesma mensagem, apenas escrita corretamente.
+      3.  **Sem Adições ou Remoções:** NÃO adicione informações que não estavam presentes e NÃO remova nenhuma parte do conteúdo original.
+      4.  **Fidelidade ao Estilo:** Mantenha o estilo da fala, seja ele formal ou informal.
 
-    const { text } = validation.data;
+      TEXTO BRUTO PARA CORRIGIR:
+      "${rawText}"
 
-    // 3. AI Processing with GenKit
-    try {
-      const prompt = `Your task is to correct and improve a given text.
-        Focus on fixing grammar, spelling, punctuation, and improving the overall fluency.
-        It is absolutely critical that you preserve 100% of the original meaning and tone.
-        Do NOT summarize the text.
-        Do NOT add any new information, content, or ideas.
-        The user's original text is: "${text}"`;
+      RETORNE APENAS O TEXTO CORRIGIDO E NADA MAIS.
+    `;
 
-      const response = await generate({
-        model: gemini15Flash,
-        prompt: prompt,
-      });
-
-      const enhancedText = response.text();
-
-      // 4. Return successful response
-      return { enhancedText };
-    } catch (error) {
-      console.error("Error calling Gemini API:", error);
-      throw new HttpsError(
-        "internal",
-        "An error occurred while enhancing the text."
-      );
-    }
+    const result = await llm.generate({ prompt });
+    return result.text();
   }
 );
 
+// Define the HTTPS Cloud Function that wraps the Genkit flow
+exports.enhanceText = https.onCall(async (data) => {
+  // Validate input
+  if (!data.text || typeof data.text !== 'string') {
+    throw new https.HttpsError('invalid-argument', 'The function must be called with one argument "text" containing the text to enhance.');
+  }
+
+  try {
+    // Run the Genkit flow
+    const enhancedText = await enhanceTextFlow.run(data.text);
+    return { enhancedText };
+  } catch (error) {
+    console.error("Error during text enhancement:", error);
+    throw new https.HttpsError('internal', 'An error occurred while enhancing the text.');
+  }
+});

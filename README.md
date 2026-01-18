@@ -1,52 +1,25 @@
 # Voxa
 
-## Sobre o Projeto
+Voxa is a voice-powered productivity app that helps you capture, organize, and access your ideas and information with ease. Whether you're a student, professional, or creative, Voxa is designed to be your personal assistant for all things voice-related.
 
-O Voxa é um aplicativo mobile em desenvolvimento, construído com Flutter, que tem como objetivo transformar a voz do usuário em texto de forma clara e intuitiva. O design do aplicativo segue as diretrizes do Material Design 3, focando em uma experiência de usuário moderna, limpa e acessível.
+## Key Features
 
-## Status Atual
+*   **Voice-to-Text Transcription:** Accurately transcribe your spoken words into text in real-time.
+*   **Smart Categorization:** Automatically categorize your notes, reminders, and ideas based on their content.
+*   **Seamless Integration:** Connect Voxa with your favorite apps and services to streamline your workflow.
+*   **Cross-Platform Sync:** Access your data from any device, anytime, anywhere.
 
-O projeto está em fase de desenvolvimento iterativo, com foco na construção da interface e na definição da experiência do usuário (UI/UX). As funcionalidades principais estão sendo implementadas conceitualmente e visualmente antes da integração da lógica de backend e gravação de áudio.
+## Technologies Used
 
-Atualmente, o app simula os estados de "parado" e "ouvindo" na tela principal, preparando a base para as funcionalidades de gravação.
+*   **Flutter:** A cross-platform UI toolkit for building beautiful, natively compiled applications for mobile, web, and desktop from a single codebase.
+*   **Firebase:** A comprehensive mobile and web application development platform that provides a wide range of tools and services, including authentication, database, storage, and machine learning.
+*   **Gemini:** A family of generative AI models that can be used for a variety of tasks, including text generation, summarization, and translation.
 
-## Funcionalidades Implementadas (Visuais e Conceituais)
+## Getting Started
 
-*   **Simulação de Gravação:** A tela principal responde à interação do usuário, alternando entre um estado "inativo" e um estado "ouvindo", com feedback visual claro (mudança de texto e ícones).
-*   **Design System com Material 3:**
-    *   Utiliza `ColorScheme.fromSeed` para gerar paletas de cores dinâmicas para os modos claro (light) e escuro (dark).
-    *   **Cores Base:** Primária (`0xFF7B61FF`) e Secundária (`0xFFFFD766`).
-    *   **Tipografia:** Utiliza a fonte 'Inter' do pacote `google_fonts`.
-*   **Tema Dinâmico:** Suporte completo para temas claro e escuro, com componentes que se adaptam automaticamente.
+To get started with Voxa, simply clone this repository and run the following commands:
 
-## Arquitetura e Tecnologia
-
-*   **Framework:** Flutter
-*   **Gerenciamento de Estado:** `provider`
-*   **Roteamento:** `go_router`
-*   **Estrutura do Projeto:** Organização por features (Feature-first).
-*   **Design:** Material Design 3
-
-## Como Executar o Projeto
-
-Para executar o Voxa em seu ambiente de desenvolvimento, siga os passos abaixo:
-
-1.  **Clone o repositório:**
-    ```sh
-    git clone <URL_DO_REPOSITORIO>
-    cd voxa
-    ```
-
-2.  **Instale as dependências:**
-    ```sh
-    flutter pub get
-    ```
-
-3.  **Execute o aplicativo:**
-    ```sh
-    flutter run
-    ```
-
-## Processo de Desenvolvimento
-
-O desenvolvimento deste aplicativo é assistido por IA e segue um processo iterativo documentado no arquivo `blueprint.md`. Cada "Etapa" representa um incremento no desenvolvimento, adicionando novas funcionalidades ou refinando as existentes.
+```bash
+flutter pub get
+flutter run
+```

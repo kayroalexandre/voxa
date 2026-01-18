@@ -21,7 +21,7 @@ dependencies:
   firebase_storage: 13.0.5
   path_provider: 2.1.5
   speech_to_text: ^7.3.0
-  cloud_functions: 6.0.5
+  cloud_functions: ^6.0.5
   record: ^6.1.2
   permission_handler: ^12.0.1
 

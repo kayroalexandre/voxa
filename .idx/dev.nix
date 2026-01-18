@@ -7,6 +7,7 @@
   packages = [
     pkgs.jdk21
     pkgs.unzip
+    pkgs.android-sdk
   ];
   # Sets environment variables in the workspace
   env = {};
