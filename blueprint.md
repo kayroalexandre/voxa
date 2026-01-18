@@ -1,50 +1,24 @@
 
-# Voxa AI Architecture Blueprint
+# Visão Geral do Projeto: Voxa
 
-## Overview
+O Voxa é um aplicativo Flutter projetado para gravar a voz do usuário e transcrevê-la em texto. O objetivo é fornecer uma interface simples e intuitiva para capturar áudio e, eventualmente, processá-lo usando serviços de nuvem.
 
-This document outlines the architecture of the Voxa application, a mobile app that leverages AI to provide voice-to-text transcription, text enhancement, and mind map generation.
+## Estilo e Design
 
-## Style and Design
+- **Tema:** O aplicativo usa um tema Material Design padrão com um esquema de cores primário azul.
+- **Fonte:** A fonte padrão do sistema é usada.
+- **Layout:** O layout é simples e centrado, com uma tela principal que dá as boas-vindas ao usuário e um botão de ação flutuante para iniciar a gravação de voz.
+- **Componentes:**
+    - `HomeScreen`: A tela principal do aplicativo.
+    - `VoiceRecordingSheet`: Uma folha modal que aparece para gravar a voz do usuário.
 
-The application will follow modern design principles, with a focus on a clean, intuitive user interface. It will be responsive and adapt to different screen sizes. The color palette, typography, and iconography will be carefully chosen to create a visually appealing and user-friendly experience.
+## Recursos Implementados
 
-## Architecture
+- **Gravação de Voz:** O aplicativo pode gravar a voz do usuário usando o microfone do dispositivo.
+- **Permissões:** O aplicativo solicita permissão de microfone antes de iniciar a gravação.
+- **Armazenamento de Áudio:** O áudio gravado é salvo em um arquivo temporário no dispositivo.
+- **Interface do Usuário de Gravação:** Uma folha modal exibe um indicador de gravação e botões para confirmar ou cancelar a gravação.
 
-The Voxa application follows a strict client-server architecture. The Flutter application acts as the client, responsible for the user interface and user experience. The Firebase backend, consisting of Cloud Functions, GenKit, and Gemini, is responsible for all AI-powered features.
+## Plano para a Próxima Mudança
 
-### Frontend (Flutter)
-
-*   The Flutter application is **only a client**.
-*   It **does not** contain any AI-related logic or dependencies.
-*   It **only** calls Cloud Functions for any AI-powered features.
-
-### Backend (Firebase)
-
-*   All AI logic is handled exclusively in the backend.
-*   Cloud Functions are used to orchestrate the AI workflows.
-*   GenKit is used to define and manage the AI flows.
-*   The Gemini model is used for all generative AI tasks.
-
-## Features
-
-### Implemented
-
-*   **AI-Powered Text Enhancement:** Users can input text and have it enhanced by an AI model. The model corrects grammar, improves fluency, and preserves the original meaning of the text. This is implemented using a GenKit flow with the Gemini 1.5 Flash model, orchestrated by a Firebase Cloud Function.
-*   **Secure Authentication:** All AI-powered features require user authentication. The Cloud Function that handles text enhancement verifies that the user is authenticated before processing the request.
-
-### Planned
-
-*   **Voice-to-Text Transcription:** Users will be able to record their voice and have it transcribed into text.
-*   **Mind Map Generation:** The app will automatically generate mind maps from transcribed text.
-*   **Data Persistence:** Transcriptions, enhanced text, and mind maps will be saved to a database.
-
-## Current Task: AI Architecture Correction
-
-### Plan
-
-1.  **Correct `AiService`:** Rewrite the `lib/features/ai/ai_service.dart` file to remove all AI-related logic and dependencies, and ensure it only calls the `enhanceText` Cloud Function.
-2.  **Correct `pubspec.yaml`:** Remove the invalid `firebase_ai` dependency from the `pubspec.yaml` file.
-3.  **Run `flutter pub get`:** Update the project's dependencies.
-4.  **Verify Backend:** Review the `functions/index.js` and `functions/text_enhancer_flow.js` files to ensure they are correctly set up to handle requests from the Flutter application.
-5.  **Update `blueprint.md`:** Update the `blueprint.md` file to reflect the corrected architecture.
+- **Implementar o Serviço de Transcrição:** O próximo passo é implementar o `TranscriptionService` para transcrever o arquivo de áudio gravado em texto. Isso envolverá o uso de um serviço de nuvem como o Cloud Functions para processar o áudio.
