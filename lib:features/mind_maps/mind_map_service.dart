@@ -1,7 +1,7 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'mind_map_model.dart';
+import 'package:voxa/features/mind_maps/mind_map_model.dart';
 
 class MindMapService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
